@@ -9,6 +9,8 @@ struct ContentView: View {
     @State private var userScore = 0
     @State private var maxGamesReached = false
     @State private var maxNumberOfGames = 8
+    @State private var animationAmounts = [0.0, 0.0, 0.0]
+    @State private var flagClicked = -1
     
     var body: some View {
         ZStack {
@@ -29,16 +31,20 @@ struct ContentView: View {
                         Text("Tap the flag of \(countries[correctAnswer])")
                             .foregroundStyle(.white)
                             .font(.subheadline.weight(.heavy))
+                        
                     }
                     .padding()
                     VStack {
                         ForEach(0..<3) { number in
                             Button {
-                                flagTapped(number)
+                                withAnimation {
+                                    flagTapped(number)
+                                    animationAmounts[number] += 360
+                                }
                             } label : {
-                                Image(countries[number])
-                                    .clipShape(.buttonBorder)
-                                    .shadow(radius: 5)
+                                FlagImage(imageName: countries[number])
+                                    .rotation3DEffect(.degrees(animationAmounts[number]), axis: (x: 0, y: 1, z: 0))
+                                    .opacity(flagClicked == -1 || flagClicked == number ? 1.0 : 0.25)
                             }
                         }
                     }
@@ -71,6 +77,7 @@ struct ContentView: View {
     }
     
     func flagTapped(_ number: Int) {
+        flagClicked = number
         if number == correctAnswer {
             scoreTitle = "Correct"
             userScore += 1
@@ -86,6 +93,7 @@ struct ContentView: View {
     }
     
     func askQuestion() {
+        flagClicked = -1
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
     }
